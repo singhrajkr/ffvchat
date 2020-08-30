@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import * as redisStore from 'cache-manager-redis-store';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { CommonModule } from './common/common.module';
 import { RedisCacheModule } from './redis-cache/redis-cache.module';
+import { SocketAppGateway } from './socket-app.gateway';
 
 @Module({
   imports: [
@@ -26,6 +26,6 @@ import { RedisCacheModule } from './redis-cache/redis-cache.module';
     RedisCacheModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, SocketAppGateway],
 })
 export class AppModule { }

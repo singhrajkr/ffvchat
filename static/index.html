@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>WebSocket Client</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+
+    <div id="v-app">
+        <h1>Chat App with WebSocket</h1>
+        <form>
+            <input v-model="chatMessage" type="text" />
+            <button type="submit" @click.prevent="sendChatMessage()">Send</button>
+        </form>
+
+        <p>
+            <ul>
+                <li v-for="msg of messages">
+                    <strong style="color:blue;">{{msg.sender}}</strong><b style="color:red;">({{msg.userId}}):</b>
+                     <p color='green'>
+                        {{msg.message}}
+                     </p>
+                </li>
+            </ul>
+        </p>
+    </div>
+    <script>
+        var app = new Vue({
+            el: '#v-app',
+            data: {
+                username: '',
+                title: 'Web Socket App Test',
+                chatMessage: '',
+                messages: [],
+                socket: {chat: null, alerts: null},
+            },
+            methods: {
+                sendChatMessage() {
+                    this.socket.chat.emit('chatToServer',{sender: this.username, message: this.chatMessage });
+                    this.chatMessage = '';
+                },
+                receiveChatMessage(msg) {
+                    this.messages.push(msg);
+                }
+            },
+            created() {
+                this.username = prompt('Enter Your Username')
+                this.socket.chat = io('http://localhost:3000/chat');
+                this.socket.chat.on('chatToClient', (msg) => {
+                    this.receiveChatMessage(msg)
+                })
+            }
+        })
+    </script>
+
+</body>
+
+</html>
+
+
+
+<!-- import { SubscribeMessage, WebSocketGateway, OnGatewayInit, WsResponse, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
+import { Logger } from '@nestjs/common';
+import { Socket, Server } from 'socket.io';
+
+@WebSocketGateway(3003, {path: '/websockets', serveClient: true, namespace: '/'})
+export class SocketAppGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+
+  private logger: Logger = new Logger('WebSocketGatewayApp')
+
+  /**
+   * This will run when WebSocket Gateway App Initialized
+   * @param server 
+   */
+  afterInit(server: Server) {
+    this.logger.log('Initialized !');
+  }
+
+  /**
+   * This will run for every client gets connected to WebSocket Gateway App
+   * @param client 
+   * @param args 
+   */
+  handleConnection(client: Socket, ...args: any[]) {
+    this.logger.log(`Client Connected ${client.id}`);
+  }
+
+  /**
+   * This will run for every client gets disconnected to WebSocket Gateway App
+   * @param client 
+   */
+  handleDisconnect(client: Socket) {
+    this.logger.log(`Client Disconnected ${client.id}`);
+  }
+
+  /**
+   * 
+   * @param client 
+   * @param payload 
+   */
+  @SubscribeMessage('messageToServer')
+  handleMessage(client: Socket, payloadFromClient: string): WsResponse<string> {
+    return { event: 'messageToServer', data: `You sent this to server - ${payloadFromClient}`};
+  }
+
+} -->

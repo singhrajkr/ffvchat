@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Socket.IO Client</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="http://localhost:3003/websockets/socket.io.js"></script>
+</head>
+
+<body>
+
+    <div id="v-app">
+        <h1>{{title}}</h1>
+        <form>
+            <input v-model="payloadFromClient" type="text" />
+            <button type="submit" @click.prevent="sendMessage()">Send</button>
+        </form>
+
+        <p>
+            <ul>
+                <li v-for="msg of messages">{{msg}}</li>
+            </ul>
+        </p>
+    </div>
+    <script>
+        var app = new Vue({
+            el: '#v-app',
+            data: {
+                title: 'Web Socket App Test',
+                payloadFromClient: '',
+                messages: ['Message One', 'Message Two'],
+                socket: null,
+            },
+            methods: {
+                sendMessage() {
+                    console.log('Send Message',this.payloadFromClient);
+                    this.socket.emit('messageToServer',this.payloadFromClient);
+                    this.payloadFromClient = '';
+                },
+                receiveMessage() {
+                    console.log('Received Message',msg);
+                    this.messages.push(msg);
+                }
+            },
+            created() {
+                this.socket = io('http://localhost:3003', {path: '/websockets'});
+                this.socket.on('messageToClient', (msg) => {
+                    console.log('Received Message',msg);
+                    this.receiveMessage(msg)
+                })
+            }
+        })
+    </script>
+
+</body>
+
+</html>
