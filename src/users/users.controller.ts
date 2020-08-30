@@ -1,8 +1,9 @@
-import { Controller, Get, Param, Post, Body, Put, Patch, Delete } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, Put, Patch, Delete, ParseIntPipe, Query, CacheKey, CacheTTL, UseInterceptors, CacheInterceptor } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiTags, ApiBody, ApiResponse, ApiProperty } from '@nestjs/swagger';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 
 @ApiTags('User')
@@ -10,29 +11,34 @@ import { ApiTags, ApiBody, ApiResponse, ApiProperty } from '@nestjs/swagger';
 export class UsersController {
     constructor(private userService: UsersService) { }
 
-    @ApiResponse({ type: [CreateUserDto]})
+    // @ApiResponse({ type: [CreateUserDto]})
+    @CacheKey('getAllUsers')
+    @UseInterceptors(CacheInterceptor)
     @Get()
-    findAll() {
-        return 'GetAll is working Fine!'
+    async findAll(@Query() paginationQuery: PaginationDto) {
+        return this.userService.find(paginationQuery);
     }
 
-    @Get(':id')
-    findOne(@Param('id') id: string) {
-        // const user = this.userService.findOne(id);
-        return id;
+    // @CacheKey(`getUserById${}`)
+    @UseInterceptors(CacheInterceptor)
+    @Get(':userId')
+    findOne(@Param('userId') userId: string) {
+        console.log('ID ', userId);
+        const user = this.userService.findOne(userId);
+        return user;
     }
 
     @Post()
     async createUser(@Body() createUserDto: CreateUserDto) {
         console.log('Create request payload: ', createUserDto)
-        return createUserDto;
+        return this.userService.saveUser(createUserDto);
     }
 
     @ApiBody({ type: [CreateUserDto] })
     @Post('create')
     async createMultipleUser(@Body() createUserDto: CreateUserDto[]) {
         console.log('Create request payload: ', createUserDto)
-        return createUserDto;
+        return this.userService.saveMultipleUser(createUserDto);
     }
 
 
@@ -44,19 +50,20 @@ export class UsersController {
         return deleteUsers;
     }
 
-    @Put('id')
-    async updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-        return updateUserDto;
+    @Put('userId')
+    async updateUser(@Param('userId') userId: string, @Body() updateUserDto: UpdateUserDto) {
+        console.log(updateUserDto);
+        return this.userService.updateUser(userId, updateUserDto);
     }
 
     @Patch()
-    async updatePartialUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    async updatePartialUser(@Param('userId') userId: string, @Body() updateUserDto: UpdateUserDto) {
         console.log('Create request payload: ', updateUserDto)
         return updateUserDto;
     }
 
-    @Delete(':id')
-    async deleteOne(@Param('id') id: string) {
-        return id;
+    @Delete(':userId')
+    async deleteOne(@Param('userId') userId: string) {
+        return this.userService.removeUser(userId);
     }
 }
